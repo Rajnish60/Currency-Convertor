@@ -66,7 +66,6 @@ currency-converter/
 ├── style.css           # Stylesheet with responsive design
 ├── script.js           # JavaScript functionality
 ├── README.md           # Project documentation
-└── assets/             # (Optional) Additional assets
 ```
 
 ## 🔧 Configuration
