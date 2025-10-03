@@ -1,4 +1,3 @@
-// Currency list mapping currency codes to country codes
 const countryList = {
     AED: "AE", AFN: "AF", XCD: "AG", ALL: "AL", AMD: "AM", ANG: "AN", AOA: "AO", AQD: "AQ", ARS: "AR", AUD: "AU",
     AZN: "AZ", BAM: "BA", BBD: "BB", BDT: "BD", XOF: "BE", BGN: "BG", BHD: "BH", BIF: "BI", BMD: "BM", BND: "BN",
@@ -18,7 +17,6 @@ const countryList = {
     UYU: "UY", UZS: "UZ", VEF: "VE", VND: "VN", VUV: "VU", YER: "YE", ZAR: "ZA", ZMK: "ZM", ZWD: "ZW"
 };
 
-// DOM elements
 const amountInput = document.getElementById('amount');
 const fromCurrency = document.getElementById('from-currency');
 const toCurrency = document.getElementById('to-currency');
@@ -36,27 +34,20 @@ const loadingSpinner = document.getElementById('loading-spinner');
 const btnText = document.querySelector('.btn-text');
 const convertedAmountDiv = document.getElementById('converted-amount');
 
-// Global variables to track state
 let currentRate = null;
 let isRateFetched = false;
 
-// Populate currency dropdowns
 function populateDropdowns() {
     const currencies = Object.keys(countryList).sort();
-    
-    // Clear existing options except the default ones
     fromCurrency.innerHTML = '';
     toCurrency.innerHTML = '';
     
     currencies.forEach(currency => {
-        // From currency dropdown
         const fromOption = document.createElement('option');
         fromOption.value = currency;
         fromOption.textContent = currency;
         if (currency === 'USD') fromOption.selected = true;
         fromCurrency.appendChild(fromOption);
-        
-        // To currency dropdown
         const toOption = document.createElement('option');
         toOption.value = currency;
         toOption.textContent = currency;
@@ -65,7 +56,6 @@ function populateDropdowns() {
     });
 }
 
-// Update flag image
 function updateFlag(select, flagElement) {
     const currencyCode = select.value;
     const countryCode = countryList[currencyCode];
@@ -75,7 +65,6 @@ function updateFlag(select, flagElement) {
     }
 }
 
-// Format number with commas and appropriate decimal places
 function formatNumber(num) {
     if (isNaN(num) || num === null || num === undefined) {
         return '--';
@@ -86,7 +75,6 @@ function formatNumber(num) {
     }).format(num);
 }
 
-// Show error message
 function showError(message) {
     errorText.textContent = message;
     errorMessage.style.display = 'flex';
@@ -95,12 +83,10 @@ function showError(message) {
     }, 5000);
 }
 
-// Hide error message
 function hideError() {
     errorMessage.style.display = 'none';
 }
 
-// Set loading state
 function setLoading(isLoading) {
     if (isLoading) {
         convertBtn.classList.add('loading');
@@ -115,11 +101,9 @@ function setLoading(isLoading) {
     }
 }
 
-// Update rate display
 function updateRateDisplay() {
     const fromCurr = fromCurrency.value;
     const toCurr = toCurrency.value;
-    
     if (currentRate && isRateFetched) {
         rateDisplay.textContent = `1 ${fromCurr} = ${formatNumber(currentRate)} ${toCurr}`;
     } else {
@@ -127,32 +111,26 @@ function updateRateDisplay() {
     }
 }
 
-// Update converted amount display
 function updateConvertedAmount() {
     if (!isRateFetched || !currentRate) {
         return;
     }
-    
     const amount = parseFloat(amountInput.value) || 0;
     const convertedAmount = amount * currentRate;
     const toCurr = toCurrency.value;
-    
     convertedResult.textContent = `${formatNumber(convertedAmount)} ${toCurr}`;
 }
 
-// Get exchange rate and convert
 async function updateExchangeRate() {
     const amount = parseFloat(amountInput.value);
     const fromCurr = fromCurrency.value;
     const toCurr = toCurrency.value;
-    
-    // Validate amount
+
     if (!amount || amount <= 0) {
         showError('Please enter a valid amount greater than 0');
         return;
     }
-    
-    // Check if same currency
+
     if (fromCurr === toCurr) {
         showError('Please select different currencies');
         return;
@@ -174,100 +152,75 @@ async function updateExchangeRate() {
         if (!rate) {
             throw new Error('Currency not supported');
         }
-        
-        // Update global state
+
         currentRate = rate;
         isRateFetched = true;
-        
-        // Update displays
+
         updateRateDisplay();
         updateConvertedAmount();
         lastUpdated.textContent = `Updated: ${new Date().toLocaleTimeString()}`;
-        
-        // Show converted amount section
+
         convertedAmountDiv.style.display = 'block';
         
     } catch (error) {
         console.error('Error fetching exchange rate:', error);
         showError('Failed to fetch exchange rate. Please try again.');
-        
-        // Reset state on error
+
         currentRate = null;
         isRateFetched = false;
-        
-        // Update displays
+
         updateRateDisplay();
         convertedResult.textContent = `-- ${toCurrency.value}`;
         lastUpdated.textContent = 'Update failed';
-        
-        // Still show converted amount section even on error
+
         convertedAmountDiv.style.display = 'block';
     } finally {
         setLoading(false);
     }
 }
 
-// Real-time conversion as user types
 function handleAmountChange() {
     const value = amountInput.value;
-    
-    // Allow only numbers and decimal point
+
     if (value === '' || /^\d*\.?\d*$/.test(value)) {
-        // If there's a current rate and converted amount is visible, update conversion immediately
         if (isRateFetched && convertedAmountDiv.style.display === 'block') {
             updateConvertedAmount();
         }
     } else {
-        // Remove invalid characters
         amountInput.value = value.replace(/[^\d.]/g, '');
     }
 }
 
-// Swap currencies
 function swapCurrencies() {
     const fromValue = fromCurrency.value;
     const toValue = toCurrency.value;
-    
-    // Swap values
     fromCurrency.value = toValue;
     toCurrency.value = fromValue;
-    
-    // Update flags
+
     updateFlag(fromCurrency, fromFlag);
     updateFlag(toCurrency, toFlag);
-    
-    // Reset rate state since currencies changed
+
     currentRate = null;
     isRateFetched = false;
-    
-    // Update rate display
     updateRateDisplay();
-    
-    // Hide converted amount until new rate is fetched
+
     convertedAmountDiv.style.display = 'none';
     lastUpdated.textContent = '';
 }
 
-// Handle currency change
 function handleCurrencyChange() {
-    // Reset rate state since currencies changed
     currentRate = null;
     isRateFetched = false;
-    
-    // Update rate display
     updateRateDisplay();
-    
-    // Hide converted amount until new rate is fetched
     convertedAmountDiv.style.display = 'none';
     lastUpdated.textContent = '';
 }
 
-// Event listeners
 document.addEventListener('DOMContentLoaded', function() {
     populateDropdowns();
     updateFlag(fromCurrency, fromFlag);
     updateFlag(toCurrency, toFlag);
-    updateRateDisplay(); // Initialize rate display
+    updateRateDisplay(); 
 });
 
 fromCurrency.addEventListener('change', function() {
